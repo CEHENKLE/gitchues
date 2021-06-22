@@ -37,7 +37,7 @@ if not picklefile1.exists():
  #   go(label2, picklefile2)
 
 # let's back those pickles up.
-copyfile("issue-tracker-untriaged.pkl", label1+the_date+".pkl")
+copyfile(picklefile1, label1+the_date+"backup"+".pkl")
 #copyfile("issue-tracker-untriaged.pkl", label2+the_date+".pkl")
 
 # get your source data
