@@ -4,37 +4,38 @@ import os
 import pandas as pd
 import sys
 
+
 # used on first run to set up the pickle where we'll be storing stuff
-
-
-def main(my_label, pickle_file):
-    go(my_label, pickle_file)
-    return
-
-
-def go(my_label, pickle_file):
+def main(labels, my_org):
     token = os.getenv('GITHUB_TOKEN', '...')
     g = Github(token)
-    org = g.get_organization("OpenSearch-project")
-    repo_list = org.get_repos()
+    org = g.get_organization(my_org)
 
-    the_date = str(date.today())
     repo_data = []
     repo_names = []
+    panda_list = []
 
-    for repo in repo_list:
+    for repo in org.get_repos():
         repo_names.append(repo.name)
-        repo_data.append(repo.get_issues(state="open", labels=[my_label]).totalCount)
+    the_date = str(date.today())
 
-    panda_data = {
-         the_date: (repo_data)
-     }
-
-    df = pd.DataFrame(panda_data, index=repo_names)
-    df.to_pickle(pickle_file)
-
+# I bet there's a more pythonic way to do this.
+    for label in labels:
+        for repo in org.get_repos():
+            repo_data.append(repo.get_issues(state="open", labels=[label]).totalCount)
+        panda_list.append({
+             the_date: (repo_data)
+             })
+        repo_data = []
+# see, this I like ;)
+    dataframes = list(map(lambda x: pd.DataFrame(x, index=repo_names), panda_list))
+    print(dataframes)
+    i = 0
+    for dataframe in dataframes:
+        dataframe.to_pickle("gitchues-"+labels[i]+".pkl")
+        i += 1
     return
 
 
 if __name__ == "__main__":
-    main(str(sys.argv[1]), str(sys.argv[2]))
+    main(list(sys.argv[1]), str(sys.argv[2]))
